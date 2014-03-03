@@ -3,7 +3,7 @@ package cop3530;
  * By: Olena Tkachenko and Miguel Chateloin
  */
 
-import java.io.File;
+
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -11,47 +11,50 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
-public class Assignment4 {
 
-    public static final String DEFAULT_FILENAME = "data.txt";
+public class Assignment4 
+{
 
     private Scanner input;
     private boolean runTimeReporting;
-    public String output;
+    public String output;                   
 
-    public static void main(String args[]) throws FileNotFoundException {
+    public static void main(String args[]) throws FileNotFoundException 
+    {
         Assignment4 assignment = new Assignment4();
-        assignment.setRunTimeReporting(false);
+        assignment.setRunTimeReporting(true);
         assignment.run();
         assignment.printOutput();
     }
 
     public Assignment4() throws FileNotFoundException {
-        this(DEFAULT_FILENAME, false);
+        this(false);
     }
 
-    public Assignment4(String fileName) throws FileNotFoundException {
-        this(fileName, false);
-    }
 
-    public Assignment4(String fileName, boolean reportRunTime) throws FileNotFoundException {
-        this.input = new Scanner(new File(fileName));
+    public Assignment4( boolean reportRunTime) throws FileNotFoundException {
+        this.input = new Scanner(System.in);
         this.runTimeReporting = reportRunTime;
     }
+
 
     public void setRunTimeReporting(boolean value) {
         this.runTimeReporting = value;
     }
 
+
     public void printOutput() {
         System.out.println(output);
     }
 
-    public void run() {
+
+    public void run() 
+    {
         int numCases = new Integer(input.nextLine());
         String caseOutput = "";
         for (int i = 0; i < numCases; i++) {
-            long startTime = System.nanoTime();
+            long startTime = System.currentTimeMillis();
+
 
             ///Read in the edges and and collect the unique letters
             int numEdges = new Integer(input.nextLine());
@@ -71,18 +74,20 @@ public class Assignment4 {
             
             String solution = lowestMaxDistance(edges, letters);
 
-            double duration = (System.nanoTime() - startTime) / 1000000.0;
+
+            double duration = (System.currentTimeMillis() - startTime);
             caseOutput += solution + (runTimeReporting ? ", avg. run time: " + duration + " ms" : "") + "\n";
         }
+
 
         this.output = caseOutput;
     }
     
     /**
-     * Lexicographical permutation of a string. implementation based on this algorithm:
+     * Lexicographical permutation of a string. Implementation based on this algorithm:
      * http://en.wikipedia.org/wiki/Permutation#Generation_in_lexicographic_order
      * @param letters
-     * @return A list of all permutated strings
+     * @return a list of all permutated strings
      */
     private List<String> permutate(String letters) {
         char[] characters = letters.toCharArray();
@@ -90,15 +95,16 @@ public class Assignment4 {
         List<String> permutations = new LinkedList();
         permutations.add(new String(characters)); //The initial sorted word
 
+
         int k = -1;
         int l = -1;
         char temp;
         boolean kFound;
-        do {
-
-            //Determine k index
+        
+        do {   //Determine k index where k isn't last index in a word
             kFound = false;
-            for (int i = characters.length - 1; i >= 0; i--) {
+            for (int i = characters.length - 2; i >= 0; i--) 
+            {
                 if (i != (characters.length - 1) && characters[i] < characters[i + 1]) {
                     k = i;
                     kFound = true;
@@ -107,7 +113,7 @@ public class Assignment4 {
             }
 
             if (kFound) {
-                //Determine l index
+                //Determine l index where a[l]>a[k]
                 for (int i = characters.length - 1; i >= 0; i--) {
                     if (characters[k] < characters[i]) {
                         l = i;
@@ -115,10 +121,12 @@ public class Assignment4 {
                     }
                 }
 
+
                 //Swap kth and lth value
                 temp = characters[k];
                 characters[k] = characters[l];
                 characters[l] = temp;
+
 
                 //Reverse sequence after k+1th index
                 int sequenceLength = characters.length - k + 1;
@@ -131,10 +139,13 @@ public class Assignment4 {
                     }
                 }
 
+
                 permutations.add(new String(characters));
             }
 
+
         } while (kFound);
+
 
         return permutations;
     }
@@ -142,9 +153,9 @@ public class Assignment4 {
 
     /**
      * Calculates lowest max distance between friends for all the permutations
-     * @param edges
-     * @param origLetters
-     * @return The string found with the distance included
+     * @param edges as a list of char[]'s
+     * @param origLetters as a string word
+     * @return the string found with the distance included
      */
     public String lowestMaxDistance( List<char[]> edges, String origLetters)
     {
@@ -153,12 +164,12 @@ public class Assignment4 {
         String bestWord = "";
         for (String p : permutate(origLetters)) {
             int maxDistance = getMaxDistance(p, edges);
+            if (maxDistance == 1) {
+                break;          //We can't do better than this so stop here.
+            }
             if (maxDistance < minMaxDistance) {
                 minMaxDistance = maxDistance;
                 bestWord = p;
-            }
-            if (maxDistance == 1) {
-                break; //We can't do better than this so stop here.
             }
         }
         
@@ -168,9 +179,9 @@ public class Assignment4 {
     
     /**
      * Calculates max distance between letters for 1 word
-     * @param word
-     * @param edges
-     * @return max
+     * @param word as a string
+     * @param edges list of char[]
+     * @return maxDistance as an integer
      */
     private int getMaxDistance(String word, List<char[]> edges) {
         int charIndex = 0;
