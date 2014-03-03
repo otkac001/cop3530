@@ -2,133 +2,187 @@ package cop3530;
 /**
  * By: Olena Tkachenko and Miguel Chateloin
  */
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
-import java.util.Collections;
 
-public class Assignment4
-{
-    private ArrayList<String> letters = new ArrayList<>();
+public class Assignment4 {
 
-    //calculates max distance between friends for 1 word
-     public static int getMaxDistance(List<String[]> edges, String word)
-     {
-        int max = 0;
-        for(String[] e : edges)
-        {
-            int distance = Math.abs(word.indexOf(e[0]) - word.indexOf(e[1]));
-            if(distance > max) max = distance;
-        }
-        return max;
-    }
-     //calculates lowest max distance between friends for all the permutations
-    public String[] lowestMaxDistance( List<String[]> edges, String origLetters)
-    {
-        String[] out = new String[2];
-        letters = permutationGenerator(origLetters);
-        //sorts all the permutaions of letters
-        Collections.sort(letters);
-        int minMaxDistance = origLetters.length()-1;
-        for(String e: letters)
-        {
-           int maxDistance = getMaxDistance(edges, e);
-                if(maxDistance < minMaxDistance){
-                    minMaxDistance = maxDistance;
-                    out[0] = e;
-                    out[1] = "" + minMaxDistance;
-                }
-                else if(maxDistance == 0)
-                {
-                    out[0] = e;
-                    out[1] = "" + maxDistance;
-                    return out;
-                }
-                else
-                {}
-            
-        }
-        return out;
-        
-    }
-  
-    public ArrayList<String> permutationGenerator(String Letters) 
-    {
-        
-        permutation("", Letters);
-        return letters;
+    public static final String DEFAULT_FILENAME = "data.txt";
+
+    private Scanner input;
+    private boolean runTimeReporting;
+    public String output;
+
+    public static void main(String args[]) throws FileNotFoundException {
+        Assignment4 assignment = new Assignment4();
+        assignment.setRunTimeReporting(false);
+        assignment.run();
+        assignment.printOutput();
     }
 
-
-   //helper method that produces all permutations of String str 
-    private void permutation(String prefix, String str) 
-    {
-        int n = str.length();
-        if (n == 0) 
-            letters.add(prefix);
-        else 
-        {
-            for (int i = 0; i < n; i++)
-           permutation(prefix + str.charAt(i), str.substring(0, i) + str.substring(i+1, n));
-        }
+    public Assignment4() throws FileNotFoundException {
+        this(DEFAULT_FILENAME, false);
     }
 
+    public Assignment4(String fileName) throws FileNotFoundException {
+        this(fileName, false);
+    }
 
-    public static void main(String args[]) throws FileNotFoundException{
-        Scanner input = new Scanner(new File("data.txt"));
-        int numCases = input.nextInt();
-        int numEdges = input.nextInt();
-        System.out.println(input.nextLine());
-        for(int i=0; i<numCases; i++)
-        {
-            int charIndex = 0;
-            Map<String, Integer> word = new HashMap();
-            List<String[]> edges = new LinkedList();
-            //reinitialize numEdges becouse nextInt is not the same as nextLine()
-            if (i>0)
-            {
-                numEdges = input.nextInt();
-                System.out.println(input.nextLine());
-            }
-            for(int e=0; e<numEdges; e++)
-            {
-                    String line = input.nextLine();
-                    String[] edge = line.split(" ");
-                    edges.add(edge);
-                    for(String vertex : edge){
-                    if(!word.containsKey(vertex)){
-                        word.put(vertex, charIndex);
-                        charIndex++;
+    public Assignment4(String fileName, boolean reportRunTime) throws FileNotFoundException {
+        this.input = new Scanner(new File(fileName));
+        this.runTimeReporting = reportRunTime;
+    }
+
+    public void setRunTimeReporting(boolean value) {
+        this.runTimeReporting = value;
+    }
+
+    public void printOutput() {
+        System.out.println(output);
+    }
+
+    public void run() {
+        int numCases = new Integer(input.nextLine());
+        String caseOutput = "";
+        for (int i = 0; i < numCases; i++) {
+            long startTime = System.nanoTime();
+
+            ///Read in the edges and and collect the unique letters
+            int numEdges = new Integer(input.nextLine());
+            List<char[]> edges = new LinkedList();
+            String letters = "";
+            HashSet lettersUsed = new HashSet();
+            for (int e = 0; e < numEdges; e++) {
+                char[] edge = input.nextLine().replaceAll(" ", "").toCharArray();
+                edges.add(edge);
+                for (char vertex : edge) {
+                    if (!lettersUsed.contains(vertex)) {
+                        lettersUsed.add(vertex);
+                        letters += vertex;
                     }
                 }
-                
-            }
-            Collection<String> letters = word.keySet();//list of unduplicated letters input
-            String unduplicated = "";
-            for (String e: letters)
-            {
-                unduplicated += e;
             }
             
-            Assignment4 friends = new Assignment4();
-            String[] out = friends.lowestMaxDistance(edges, unduplicated);
-            // put spaces between output characters
-            String bestWord = "";
-            for (int x=0; x<out[0].length(); x++)
-            {
-                bestWord += out[0].substring(x,x+1)+" ";
-            }
-            //printing the message    
-            String minMaxDistance = out[1];
-            System.out.println(bestWord + " = " + minMaxDistance);
-        }
-    }
+            String solution = lowestMaxDistance(edges, letters);
 
+            double duration = (System.nanoTime() - startTime) / 1000000.0;
+            caseOutput += solution + (runTimeReporting ? ", avg. run time: " + duration + " ms" : "") + "\n";
+        }
+
+        this.output = caseOutput;
+    }
+    
+    /**
+     * Lexicographical permutation of a string. implementation based on this algorithm:
+     * http://en.wikipedia.org/wiki/Permutation#Generation_in_lexicographic_order
+     * @param letters
+     * @return A list of all permutated strings
+     */
+    private List<String> permutate(String letters) {
+        char[] characters = letters.toCharArray();
+        Arrays.sort(characters);
+        List<String> permutations = new LinkedList();
+        permutations.add(new String(characters)); //The initial sorted word
+
+        int k = -1;
+        int l = -1;
+        char temp;
+        boolean kFound;
+        do {
+
+            //Determine k index
+            kFound = false;
+            for (int i = characters.length - 1; i >= 0; i--) {
+                if (i != (characters.length - 1) && characters[i] < characters[i + 1]) {
+                    k = i;
+                    kFound = true;
+                    break;
+                }
+            }
+
+            if (kFound) {
+                //Determine l index
+                for (int i = characters.length - 1; i >= 0; i--) {
+                    if (characters[k] < characters[i]) {
+                        l = i;
+                        break;
+                    }
+                }
+
+                //Swap kth and lth value
+                temp = characters[k];
+                characters[k] = characters[l];
+                characters[l] = temp;
+
+                //Reverse sequence after k+1th index
+                int sequenceLength = characters.length - k + 1;
+                int sequenceMid = characters.length - (sequenceLength / 2) + 1;
+                if (sequenceLength > 1) {
+                    for (int i = k + 1, offset = 0; i < sequenceMid; i++, offset++) {
+                        temp = characters[i];
+                        characters[i] = characters[characters.length - 1 - offset];
+                        characters[characters.length - 1 - offset] = temp;
+                    }
+                }
+
+                permutations.add(new String(characters));
+            }
+
+        } while (kFound);
+
+        return permutations;
+    }
+    
+
+    /**
+     * Calculates lowest max distance between friends for all the permutations
+     * @param edges
+     * @param origLetters
+     * @return The string found with the distance included
+     */
+    public String lowestMaxDistance( List<char[]> edges, String origLetters)
+    {
+        //Run through each permutation, getting the minimum of the maximum edge distances.
+        int minMaxDistance = Integer.MAX_VALUE;
+        String bestWord = "";
+        for (String p : permutate(origLetters)) {
+            int maxDistance = getMaxDistance(p, edges);
+            if (maxDistance < minMaxDistance) {
+                minMaxDistance = maxDistance;
+                bestWord = p;
+            }
+            if (maxDistance == 1) {
+                break; //We can't do better than this so stop here.
+            }
+        }
+        
+        return bestWord.replaceAll("", " ").trim() + " = " + minMaxDistance; //Output has spaces between characters
+    }
+    
+    
+    /**
+     * Calculates max distance between letters for 1 word
+     * @param word
+     * @param edges
+     * @return max
+     */
+    private int getMaxDistance(String word, List<char[]> edges) {
+        int charIndex = 0;
+        int max = 1;
+        for (char[] e : edges) {
+            int distance = Math.abs(word.indexOf(e[0]) - word.indexOf(e[1]));
+            if (distance > max) {
+                max = distance;
+            }
+        }
+
+        return max;
+    }
 
 }
