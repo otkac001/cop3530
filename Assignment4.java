@@ -3,7 +3,6 @@ package cop3530;
  * By: Olena Tkachenko and Miguel Chateloin
  */
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -27,15 +26,11 @@ public class Assignment4 {
     }
 
     public Assignment4() throws FileNotFoundException {
-        this(DEFAULT_FILENAME, false);
+        this(false);
     }
 
-    public Assignment4(String fileName) throws FileNotFoundException {
-        this(fileName, false);
-    }
-
-    public Assignment4(String fileName, boolean reportRunTime) throws FileNotFoundException {
-        this.input = new Scanner(new File(fileName));
+    public Assignment4( boolean reportRunTime) throws FileNotFoundException {
+        this.input = new Scanner(System.in);
         this.runTimeReporting = reportRunTime;
     }
 
@@ -48,13 +43,13 @@ public class Assignment4 {
     }
 
     public void run() {
-        int numCases = new Integer(input.nextLine());
+        int numCases = new Integer(input.nextLine().trim());
         String caseOutput = "";
         for (int i = 0; i < numCases; i++) {
             long startTime = System.nanoTime();
 
             ///Read in the edges and and collect the unique letters
-            int numEdges = new Integer(input.nextLine());
+            int numEdges = new Integer(input.nextLine().trim());
             List<char[]> edges = new LinkedList();
             String letters = "";
             HashSet lettersUsed = new HashSet();
@@ -68,7 +63,7 @@ public class Assignment4 {
                     }
                 }
             }
-            
+
             String solution = lowestMaxDistance(edges, letters);
 
             double duration = (System.nanoTime() - startTime) / 1000000.0;
@@ -77,7 +72,7 @@ public class Assignment4 {
 
         this.output = caseOutput;
     }
-    
+
     /**
      * Lexicographical permutation of a string. implementation based on this algorithm:
      * http://en.wikipedia.org/wiki/Permutation#Generation_in_lexicographic_order
@@ -138,7 +133,7 @@ public class Assignment4 {
 
         return permutations;
     }
-    
+
 
     /**
      * Calculates lowest max distance between friends for all the permutations
@@ -161,11 +156,11 @@ public class Assignment4 {
                 break; //We can't do better than this so stop here.
             }
         }
-        
+
         return bestWord.replaceAll("", " ").trim() + " = " + minMaxDistance; //Output has spaces between characters
     }
-    
-    
+
+
     /**
      * Calculates max distance between letters for 1 word
      * @param word
@@ -173,7 +168,6 @@ public class Assignment4 {
      * @return max
      */
     private int getMaxDistance(String word, List<char[]> edges) {
-        int charIndex = 0;
         int max = 1;
         for (char[] e : edges) {
             int distance = Math.abs(word.indexOf(e[0]) - word.indexOf(e[1]));
