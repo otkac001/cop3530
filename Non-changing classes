@@ -1,0 +1,126 @@
+package cop3530;
+import java.util.List;
+import java.util.LinkedList;
+
+public class Assignment_5 
+{
+    
+	
+	class CaseInsensitive implements HashingFunction<String> {
+
+	   public int hashCode( String key ) {	   	
+	   	return key.toLowerCase().hashCode();
+	   }
+	   
+	   public boolean equals( String lhs, String rhs ) {   	   	
+	   	return lhs.equalsIgnoreCase(rhs); 
+	   }	
+	}
+	
+	void test1()  {
+		
+		System.out.println("Test 1:");
+		HashMap<String, Double> salaries = new HashMap<>();
+		
+		// test #1a: verify that identical keys allow the same map entry to be replaced.
+		salaries.put( "1000", 55000.0 );
+		salaries.put( "1000", 45000.0 );
+		System.out.println( "New value is " + salaries.get("1000"));
+
+		// test #1b: add several items and display the map as a string
+		salaries.put( "1234", 25000.0 );
+		salaries.put( "2001", 43000.0 );
+		salaries.put( "2010", 67000.0 );
+		salaries.put( "2020", 37000.0 );
+		salaries.put( "3010", 57000.0 );
+		salaries.put( "3020", 87000.0 );
+		
+		// test #1c: test the size and toString operations
+		System.out.println("\nPrinting with toString():");
+		System.out.println( salaries.toString() );
+		System.out.printf("Size = %d\n", salaries.size() );
+		
+		// test #1c: use the iterator
+		System.out.println("\nPrinting with an iterator loop");
+		for( Map.Entry<String, Double> entry : salaries ) {
+			System.out.print( entry.toString() + " " );
+		}
+		System.out.println();
+	}
+	
+	void test2()  {
+		// test 2a: Implement a custom hashing function that ignores case differences
+		System.out.println("\nTest 2:");	
+		HashMap<String, Double> accounts = new HashMap<>( new CaseInsensitive() );
+		accounts.put( "AbCDef", 45000.0 );
+		accounts.put( "abcdEF", 25000.0 );  // final value
+		accounts.put( "aabCDE", 43000.0 );
+		accounts.put( "AABcde", 67000.0 );  // final value
+		accounts.put( "BDDEfg", 37000.0 );
+		accounts.put( "bddEFG", 57000.0 );  // final value
+		
+		// Test 2b: Show that a case-insensitive insertion was used. 
+		System.out.println("\n" + accounts.toString() );
+		// Expected output: [AbCDef,25000.0], [aabCDE,67000.0], [BDDEfg,57000.0]
+
+		// Test 2c: verify that the get function also ignores case differences:
+		System.out.printf("\nLooking for abcdEF and AbCDef: %.2f = %.2f\n",
+				accounts.get("abcdEF"), accounts.get("AbCDef"));
+		// Expected output: the values are equal.
+	}
+	
+	void test3() {
+		// test 3: just making sure you created a generic HashMap class
+		System.out.println("\nTest 3:");	
+		HashMap<Integer, List<String>> courses = new HashMap<>();
+		courses.put(1130, new LinkedList<String>());
+		courses.get(1130).add( "COP 3337" );
+		courses.get(1130).add( "MAD 3105" );
+		courses.get(1130).add( "PHY 2048" );
+		courses.get(1130).add( "CDA 3033" );
+
+		courses.put(1131, new LinkedList<String>());
+		courses.get(1131).add( "COP 3530" );
+		courses.get(1131).add( "CDA 4101" );
+		courses.get(1131).add( "PHY 2049" );
+		courses.get(1131).add( "ENC 2301" );
+		System.out.println(courses);
+	}
+		
+	public static void main(String[] args) {
+	
+		Assignment_5 app = new Assignment_5();
+		app.test1();
+		app.test2();
+		app.test3();	
+	}
+}
+
+
+package cop3530;
+
+public interface HashingFunction<T>
+{
+    int hashCode( T obj );
+    boolean equals( T lhs, T rhs );
+}
+
+
+
+package cop3530;
+
+import java.util.Iterator;
+
+public interface Map<KeyType,ValueType> extends
+Iterable<HashMap.Map.Entry<KeyType,ValueType>>
+{
+    
+    ValueType get( KeyType k );
+    ValueType put( KeyType k, ValueType v );
+    int size( );
+    void clear( );
+    boolean isEmpty( );
+    interface Entry<KeyType,ValueType> extends java.util.Map.Entry<KeyType,ValueType>
+    {}
+    Iterator<HashMap.Map.Entry<KeyType,ValueType>> iterator( );
+}
