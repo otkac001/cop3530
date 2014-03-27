@@ -106,13 +106,12 @@ public interface HashingFunction<T>
 }
 
 
-
 package cop3530;
 
 import java.util.Iterator;
 
 public interface Map<KeyType,ValueType> extends
-Iterable<HashMap.Map.Entry<KeyType,ValueType>>
+Iterable<Map.Entry<KeyType,ValueType>>
 {
     
     ValueType get( KeyType k );
@@ -122,5 +121,6 @@ Iterable<HashMap.Map.Entry<KeyType,ValueType>>
     boolean isEmpty( );
     interface Entry<KeyType,ValueType> extends java.util.Map.Entry<KeyType,ValueType>
     {}
-    Iterator<HashMap.Map.Entry<KeyType,ValueType>> iterator( );
+    Iterator<Map.Entry<KeyType,ValueType>> iterator( );
 }
+
