@@ -8,13 +8,27 @@ public class Assignment_5
 	
 	class CaseInsensitive implements HashingFunction<String> {
 
-	   public int hashCode( String key ) {	   	
-	   	return key.toLowerCase().hashCode();
+	   String key;
+	   public int hashCode( String key ) {
+               this.key= key.toLowerCase();
+            return key.hashCode();
 	   }
-	   
 	   public boolean equals( String lhs, String rhs ) {   	   	
 	   	return lhs.equalsIgnoreCase(rhs); 
-	   }	
+	   }
+	 /**
+     *
+     * @return
+     */
+    @Override
+	public int hashCode() {
+        int hashVal = 1;
+        for (int i = 0; i < key.length(); i++) 
+        {
+            hashVal = 37 * hashVal + key.charAt(i);
+        }
+        return hashVal;
+	}
 	}
 	
 	void test1()  {
