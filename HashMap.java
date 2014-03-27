@@ -1,9 +1,10 @@
 package cop3530;
 
-
+import cop3530.HashingFunction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,96 @@ public class HashMap<KeyType, ValueType> implements Map<KeyType, ValueType> {
     private List<Map.Entry<KeyType, ValueType>>[] theLists;
     //The number of key-value mappings contained in this map.
     private int currentSize;
+    
+    /**
+     * Construct the hash map.
+     */
+    public HashMap() {
+        this(null, DEFAULT_LOAD_FACTOR);
+    }
 
 
+    /**
+     * Construct the hash map.
+     *
+     * @param maxLoad
+     */
+    public HashMap(double maxLoad) {
+        this(null, maxLoad);
+    }
+
+
+    /**
+     * Construct the hash map.
+     *
+     * @param hf
+     */
+    public HashMap(HashingFunction<KeyType> hf) {
+        this(hf, DEFAULT_LOAD_FACTOR);
+    }
+
+
+    /**
+     * Construct the hash map.
+     *
+     * @param hf
+     * @param maxLoad
+     */
+    public HashMap(HashingFunction<KeyType> hf, double maxLoad) {
+        loadFactorLimit = maxLoad;
+        tableSize = DEFAULT_TABLE_SIZE;
+        theLists = new LinkedList[tableSize];
+        currentSize = 0;
+        for (int i = 0; i < theLists.length; i++) {
+            theLists[i] = new LinkedList<>();
+        }
+    }
+    
+    /**
+     * Returns an iterator of Map.Entry objects
+     */
+    public Iterator<Map.Entry<KeyType,ValueType>> iterator( )
+    {
+        return new MyIterator() ;
+    }
+
+
+    private class MyIterator implements Iterator<Map.Entry<KeyType,ValueType>>
+    {
+       Map.Entry<KeyType,ValueType> [] list = (Map.Entry<KeyType,ValueType> []) entrySet().toArray();
+        private int index = 0;
+        
+        public boolean hasNext( )
+        {
+            return index < list.length;
+        }
+        
+        
+        public Map.Entry<KeyType,ValueType> next( )
+        {
+            if( !hasNext( ) ) 
+                throw new java.util.NoSuchElementException( );   
+            return list[index++];
+        }
+        
+        public void remove( )
+        {
+            throw new UnsupportedOperationException();
+        }
+    }
+    
+    /**
+     * Returns a String representation Entries in Hash Map.
+     */
+    public String toString( )
+    {
+        String sb = entrySet()+" ";
+        return sb; 
+    }
+    
+    /*
+     * Return the number of key-value mappings in this map.
+     */
     @Override
     public int size() {
         return currentSize;
@@ -110,52 +199,17 @@ public class HashMap<KeyType, ValueType> implements Map<KeyType, ValueType> {
             value = v;
             return value;
         }
-
-
+        
+    /**
+     * Returns a String representation Entry.
+     */
+    public String toString( )
+    {
+        String sb = "" +this;
+        return sb ;
     }
 
 
-    /**
-     * Construct the hash map.
-     */
-    public HashMap() {
-        this(null, DEFAULT_LOAD_FACTOR);
-    }
-
-
-    /**
-     * Construct the hash map.
-     *
-     * @param maxLoad
-     */
-    public HashMap(double maxLoad) {
-        this(null, maxLoad);
-    }
-
-
-    /**
-     * Construct the hash map.
-     *
-     * @param hf
-     */
-    public HashMap(HashingFunction<KeyType> hf) {
-        this(hf, DEFAULT_LOAD_FACTOR);
-    }
-
-
-    /**
-     * Construct the hash map.
-     *
-     * @param hf
-     * @param maxLoad
-     */
-    public HashMap(HashingFunction<KeyType> hf, double maxLoad) {
-        loadFactorLimit = maxLoad;
-        tableSize = DEFAULT_TABLE_SIZE;
-        theLists = new LinkedList[tableSize];
-        for (int i = 0; i < theLists.length; i++) {
-            theLists[i] = new LinkedList<>();
-        }
     }
 
 
@@ -230,7 +284,8 @@ public class HashMap<KeyType, ValueType> implements Map<KeyType, ValueType> {
     @Override
     public ValueType get(Object key) 
     {
-        int hash = hashFunc != null ? hashFunc.hashCode((KeyType) key) : key.hashCode();
+        int hash = hashFunc != null ? hashFunc.hashCode((KeyType) key) : myHash((KeyType)key);
+        System.out.println(hash);
         List<Map.Entry<KeyType, ValueType>> row = theLists[hash];
         for (Map.Entry<KeyType, ValueType> item : row) {
             if (item.getKey().equals(key)) {
@@ -249,8 +304,8 @@ public class HashMap<KeyType, ValueType> implements Map<KeyType, ValueType> {
     @Override
     public ValueType put(KeyType key, ValueType value)
     {
-        int hash = hashFunc != null ? hashFunc.hashCode(key) : key.hashCode();
-        //System.out.println(hash);
+        int hash = hashFunc != null ? hashFunc.hashCode(key) : myHash(key);
+        /**Testing:*/System.out.println("hash: "+hash);
         List<Map.Entry<KeyType, ValueType>> list = theLists[hash];
         
         
@@ -259,6 +314,7 @@ public class HashMap<KeyType, ValueType> implements Map<KeyType, ValueType> {
         {
             ValueType out = (ValueType)list.get(index);
             list.get(index).setValue(value);
+            currentSize++;
             return out;
         }
         else
@@ -289,16 +345,17 @@ public class HashMap<KeyType, ValueType> implements Map<KeyType, ValueType> {
      */
     private int indexOf(List<Map.Entry<KeyType, ValueType>>[] list, KeyType key) {
         int index = 0;
-        boolean match = false;
+        Set<Map.Entry<KeyType, ValueType>> entrySet = entrySet();
+        if (entrySet==null)
+            return -1;
         for (Map.Entry<KeyType, ValueType> entry : entrySet())//each entry in the List
         {
-            if (entry.getKey() == key || hashFunc.equals(entry.getKey(), key)) {
+            if (entry.getKey() == key || hashFunc.equals(entry.getKey(), key))
                 return index;
-            }
-            index++;
+            else
+                index++;
         }
         return -1;
-
 
     }
 
@@ -330,7 +387,33 @@ public class HashMap<KeyType, ValueType> implements Map<KeyType, ValueType> {
      * @param tableSize the size of the hash table.
      * @return the hash value.
      */
-    public int hashCode(String key) {
+    public int hashCode(String key) 
+    {
+        int hashVal = 0;
+        for (int i = 0; i < key.length(); i++) {
+            hashVal = 37 * hashVal + key.charAt(i);
+        }
+
+
+        hashVal %= tableSize;
+        if (hashVal < 0) 
+        {
+            hashVal += tableSize;
+        }
+
+        return hashVal;
+    }
+    
+    /**
+     * A hash routine for String objects.
+     *
+     * @param key the String to hash.
+     * @param tableSize the size of the hash table.
+     * @return the hash value.
+     */
+    public int myHash(KeyType keyt)
+    {
+        String key = (String) keyt;
         int hashVal = 0;
         for (int i = 0; i < key.length(); i++) {
             hashVal = 37 * hashVal + key.charAt(i);
@@ -352,16 +435,15 @@ public class HashMap<KeyType, ValueType> implements Map<KeyType, ValueType> {
     private void rehash() {
         List<Map.Entry<KeyType, ValueType>>[] oldLists = theLists;
 
-
+        tableSize = (int) (nextPrime(2.0 * theLists.length));
         // Create new double-sized prime, empty table
-        theLists = new List[(int) (nextPrime(2.0 * theLists.length))];
+        theLists = new List[tableSize];
         for (int j = 0; j < theLists.length; j++) {
             theLists[ j] = new LinkedList<>();
         }
 
 
         // Copy table over
-        currentSize = 0;
         for (int j = 0; j < oldLists.length; j++) {
             for (List<Map.Entry<KeyType, ValueType>> list : oldLists) {
                 theLists[ j] = list;
