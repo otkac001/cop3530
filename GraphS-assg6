@@ -1,0 +1,145 @@
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+
+
+public class GraphS
+{
+    
+    public static final double INFINITY = Double.MAX_VALUE;
+    Map<String, Vertex> vMap = new HashMap<String,Vertex>();
+    
+    //Gets vertex in the Map.
+    private Vertex getVertex (String vertexName)
+    {
+        Vertex v = vMap.get(vertexName);
+        if (v==null)
+        {
+            v = new Vertex (vertexName);
+            vMap.put(vertexName, v);
+        }
+        return v;
+    }
+    
+    /**
+     * Adds the edge to the adj list of vertex
+     * @param source start name
+     * @param dest end vertex name
+     * @param cost the weight of the path
+     */
+    public void addEdge( String source, String dest, double cost)
+    {
+        Vertex v = getVertex (source);
+        Vertex w = getVertex(dest);
+        v.adj.add(new Edge (w, cost));
+    }
+    
+    public static List<Vertex> getShortestPathTo(Vertex target)
+    {
+        List<Vertex> path = new LinkedList<Vertex>();
+        for (Vertex v = target; v != null; v = v.prev)
+            path.add(v);
+
+        Collections.reverse(path);
+        return path;
+    }
+    
+    public static void computePaths(Vertex source)
+    {
+      source.minDistance = 0.;
+      PriorityQueue<Vertex> vQueue = new PriorityQueue<Vertex>();
+		vQueue.add(source);
+
+		while (!vQueue.isEmpty()) {
+			Vertex u = vQueue.poll();
+
+         // Visit each edge exiting u
+         for (Edge e : u.adj)
+         {
+            Vertex v = e.dest;
+            double weight = e.cost;
+            double distanceThroughU = u.minDistance + weight;
+				if (distanceThroughU < v.minDistance) {
+					vQueue.remove(v);
+					v.minDistance = distanceThroughU ;
+					v.prev = u;
+					vQueue.add(v);
+				}  // if
+         }  // for
+      }  // while
+    } 
+    
+    
+    public static void main( String [ ] args )
+    {
+        
+    }
+    
+    //***************edge, path, vertex classes*************//
+    
+    // Represents an edge in the graph.
+    class Edge 
+    {
+
+        public Vertex dest;   // Second vertex in Edge
+        public double cost;   // Edge cost (seconds to wait)
+
+        public Edge(Vertex d, double c) {
+            dest = d;
+            cost = c;
+        }
+    }
+
+    // Represents an entry in the priority queue for Dijkstra's algorithm.
+    class Path implements Comparable<Path> {
+
+        public Vertex dest;   // w
+        public double cost;   // d(w)
+
+        public Path(Vertex d, double c) {
+            dest = d;
+            cost = c;
+        }
+
+        public int compareTo(Path rhs) {
+            double otherCost = rhs.cost;
+
+            return cost < otherCost ? -1 : cost > otherCost ? 1 : 0;
+        }
+    }
+
+    // Represents a vertex in the graph.
+    private class Vertex implements Comparable<Vertex>
+    {
+
+        public String name;        // Vertex name
+        public List<Edge> adj;     // Adjacent vertices
+        public double dist;        // Cost
+        public double minDistance;
+        public Vertex prev;        // Previous vertex on shortest path
+        public int scratch;     // Extra variable used in algorithm
+
+        public Vertex(String nm) {
+            name = nm;
+            adj = new LinkedList<Edge>();
+            reset();
+        }
+
+        public void reset() {
+            dist = Graph.INFINITY;
+            prev = null;
+            scratch = 0;
+        }
+        public String toString() { return name; }
+	 
+        public int compareTo(Vertex other)
+        {
+            return Double.compare(minDistance, other.minDistance);
+        }
+
+    }
+   
+}
